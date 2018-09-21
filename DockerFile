@@ -1,0 +1,10 @@
+FROM tensorflow/tensorflow:latest-py3
+ADD . /developer
+LABEL maintainer="kenakamu@microsoft.com"
+
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+CMD [ "python", "./my.py" ]
