@@ -9,6 +9,15 @@ import tflearn
 from tflearn.layers.conv import conv_2d, max_pool_2d
 from tflearn.layers.core import input_data, dropout, fully_connected
 from tflearn.layers.estimator import regression
+from keras.models import Sequential
+from keras.layers import InputLayer
+from keras.layers import Conv2D
+from keras.layers import MaxPooling2D
+from keras.layers import Dense
+from keras.layers import Flatten
+from keras.models import load_model
+
+file_model = load_model('weights.09-0.04.hdf5')
 
 # Label names
 names = ["pulleys","helmets","crampons","harnesses","insulated_jackets","axes","rope","boots","hardshell_jackets","carabiners","tents","gloves"]
@@ -114,9 +123,66 @@ def predict_url():
 
     return make_response(jsonify(result))
 
+# Predict using serialized image
+@api.route('/finepredict/img', methods=['POST'])
+def fine_predict_img():
+    try:
+        x = []
+        # Get image from serialized json and prepare data
+        post_data = base64.b64decode(request.get_json()["image"])
+        im = Image.open(BytesIO(post_data)).convert('RGB')
+        arr = np.array(prepare_img(im))
+        x.append(arr)
+        x = np.asarray(x, dtype=np.float64)
+        x /= 255
+        # Run prediction and get label
+        result = file_model.predict(x)
+        name, score = find_name(result[0])
+    except:
+        abort(404)
+
+    result = {
+        "result":True,
+        "data":{
+            "product":name,
+            "score":str(score)
+            }
+        }
+
+    return make_response(jsonify(result))
+
+# Predict using URL
+@api.route('/finepredict/url', methods=['POST'])
+def fine_predict_url():
+    try:
+        x = []
+        # Get image from URL and prepare data
+        url = request.get_json()["url"]
+        response = requests.get(url)    
+        im = Image.open(BytesIO(response.content)).convert('RGB')
+        arr = np.array(prepare_img(im))
+        x.append(arr)
+        # Run prediction and get label
+        x = np.asarray(x, dtype=np.float64)
+        x /= 255
+        result = file_model.predict(x)
+        name, score = find_name(result[0])
+    except:
+        abort(404)
+
+    result = {
+        "result":True,
+        "data":{
+           "product":name,
+           "score":str(score)
+            }
+        }
+
+    return make_response(jsonify(result))
+
 @api.errorhandler(404)
 def not_found(error):
     return make_response(jsonify({'error': 'Not found'}), 404)
 
 if __name__ == '__main__':
-    api.run(host='0.0.0.0', port=3000)
+    api.run(host='0.0.0.0', port=80)
