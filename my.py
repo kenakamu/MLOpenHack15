@@ -12,7 +12,21 @@ from tflearn.layers.estimator import regression
 
 # Label names
 names = ["pulleys","helmets","crampons","harnesses","insulated_jackets","axes","rope","boots","hardshell_jackets","carabiners","tents","gloves"]
-
+# Load model 
+MODEL_NAME  ="AdventureWorksModel"
+IMG_SIZE = 128
+LR = 1e-3
+convnet = input_data(shape=[None, IMG_SIZE, IMG_SIZE, 3], name='input')
+convnet = conv_2d(convnet, 32, 5, activation='relu')
+convnet = max_pool_2d(convnet, 5)
+convnet = conv_2d(convnet, 64, 5, activation='relu')
+convnet = max_pool_2d(convnet, 5)
+convnet = fully_connected(convnet, 1024, activation='relu')
+convnet = dropout(convnet, 0.5)
+convnet = fully_connected(convnet, 12, activation='softmax')
+convnet = regression(convnet, optimizer='adam', learning_rate=LR, loss='categorical_crossentropy', name='targets')
+model = tflearn.DNN(convnet, tensorboard_dir='log')
+model.load(MODEL_NAME)
 # Get name from prediction result
 def find_name(prediction_result):
     for score, name in zip(prediction_result, names):
@@ -105,18 +119,3 @@ def not_found(error):
 if __name__ == '__main__':
     api.run(host='0.0.0.0', port=80)
 
-# Load model 
-MODEL_NAME  ="AdventureWorksModel"
-IMG_SIZE = 128
-LR = 1e-3
-convnet = input_data(shape=[None, IMG_SIZE, IMG_SIZE, 3], name='input')
-convnet = conv_2d(convnet, 32, 5, activation='relu')
-convnet = max_pool_2d(convnet, 5)
-convnet = conv_2d(convnet, 64, 5, activation='relu')
-convnet = max_pool_2d(convnet, 5)
-convnet = fully_connected(convnet, 1024, activation='relu')
-convnet = dropout(convnet, 0.5)
-convnet = fully_connected(convnet, 12, activation='softmax')
-convnet = regression(convnet, optimizer='adam', learning_rate=LR, loss='categorical_crossentropy', name='targets')
-model = tflearn.DNN(convnet, tensorboard_dir='log')
-model.load(MODEL_NAME)

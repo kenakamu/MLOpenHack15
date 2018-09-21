@@ -16,5 +16,6 @@ POST: http://adventureworksmodelapi.azurewebsites.net/predict/img
 # Docker
 docker build --rm -f Dockerfile -t adventureworksmodelapi .
 docker tag adventureworksmodelapi kenakamu/adventureworksmodelapi
+docker log
 docker push kenakamu/adventureworksmodelapi
 docker run --rm -d -p 8080:80 adventureworksmodelapi:latest
