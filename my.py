@@ -33,6 +33,11 @@ def find_name(prediction_result):
         if score != 0:
             return name
 
+def prepare_img(img):
+    resized_img = resize(img)
+    normalized_img = normalize(resized_img)
+    return normalized_img
+
 # Resize file to 128x128
 def resize(img):    
     try:
@@ -66,9 +71,7 @@ def predict_img():
         # Get image from serialized json and prepare data
         post_data = base64.b64decode(request.get_json()["image"])
         im = Image.open(BytesIO(post_data)).convert('RGB')
-        resized_img = resize(im)
-        normalized_img = normalize(resized_img)    
-        arr = np.array(normalized_img)
+        arr = np.array(prepare_img(im))
         x.append(arr)
         # Run prediction and get label
         result = model.predict(x)
@@ -85,6 +88,7 @@ def predict_img():
 
     return make_response(jsonify(result))
 
+# Predict using URL
 @api.route('/predict/url', methods=['POST'])
 def predict_url():
     try:
@@ -93,9 +97,7 @@ def predict_url():
         url = request.get_json()["url"]
         response = requests.get(url)    
         im = Image.open(BytesIO(response.content)).convert('RGB')
-        resized_img = resize(im)
-        normalized_img = normalize(resized_img)    
-        arr = np.array(normalized_img)
+        arr = np.array(prepare_img(im))
         x.append(arr)
         # Run prediction and get label
         result = model.predict(x)
@@ -118,4 +120,3 @@ def not_found(error):
 
 if __name__ == '__main__':
     api.run(host='0.0.0.0', port=3000)
-
