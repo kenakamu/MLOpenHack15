@@ -1,5 +1,4 @@
 FROM tensorflow/tensorflow:latest-py3
-ADD . /developer
 LABEL maintainer="kenakamu@microsoft.com"
 
 COPY requirements.txt ./
